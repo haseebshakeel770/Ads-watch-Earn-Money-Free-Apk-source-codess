@@ -1,0 +1,49 @@
+name: Unpack Reward King Android Project
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Android Studio project
+        run: |
+          ZIP_FILE="RewardKing_Android_Project.zip"
+
+          if [ ! -f "$ZIP_FILE" ]; then
+            echo "ZIP file not found!"
+            exit 1
+          fi
+
+          mkdir -p /tmp/rewardking-extract
+
+          unzip -o "$ZIP_FILE" -d /tmp/rewardking-extract
+
+          if [ -d /tmp/rewardking-extract/RewardKing ]; then
+            cp -a /tmp/rewardking-extract/RewardKing/. .
+          else
+            echo "RewardKing folder not found!"
+            exit 1
+          fi
+
+      - name: Commit extracted files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No changes found."
+          else
+            git commit -m "Extract Reward King Android project"
+            git push
+          fi
